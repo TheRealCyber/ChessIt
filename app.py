@@ -51,6 +51,10 @@ def stockfish_move():
         print("Game over detected.")
         return jsonify({"fen": board.fen(), "game_over": True})
 
+    if board.turn == chess.WHITE:
+        print("It's White's turn. Stockfish won't move.")
+        return jsonify({"fen": board.fen(), "error": "Not Stockfish's turn"})
+
     result = engine.play(board, chess.engine.Limit(time=0.5))
     board.push(result.move)
     print(f"Stockfish played: {result.move}")

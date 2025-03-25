@@ -15,7 +15,7 @@
     </head>    
 <body>
 
-    <h1>Chess with Stockfish</h1>
+    <h1>ChessIt™</h1>
     <div id="board" style="width: 400px"></div>
     <button id="stockfishMove">Stockfish Move</button>
 
@@ -34,18 +34,34 @@
                 position: 'start',
                 pieceTheme: function(piece) {
                     return "/static/chessboardjs/img/" + piece + ".png";
+                },
+                onDrop: function(source, target) {
+                    var move = source + target;
+
+                    fetch(`/validate-move?from=${source}&to=${target}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.valid) {
+                                board.position(data.fen); // Update the board position
+                            } else {
+                                console.log("Illegal move attempted:", move);
+                                board.position(board.fen()); // Revert to the previous state
+                            }
+                        })
+                        .catch(error => console.error("Error validating move:", error));
                 }
             });
+
 
             $("#stockfishMove").click(function () {
                 fetch('/stockfish-move')
                     .then(response => response.json())
                     .then(data => {
                         console.log("Stockfish move response:", data);
-                        if (data.move) {
-                            board.move(data.move);
+                        if (!data.error) {
+                            board.position(data.fen); // Update board position with Stockfish move
                         } else {
-                            console.error("Invalid move received:", data);
+                            console.error("Stockfish move error:", data.error);
                         }
                     })
                     .catch(error => console.error("Error fetching Stockfish move:", error));
