@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Load jQuery First -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+        <!-- Load chess.js First (Game Logic) -->
+        <script src="{{ url_for('static', filename='chessboardjs/chess-0.10.2.min.js') }}"></script>
+    
+        <!-- Load chessboard.js (UI Board) -->
+        <script src="{{ url_for('static', filename='chessboardjs/chessboard.js') }}"></script>
+    
+        <!-- Load CSS for chessboard -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='chessboardjs/chessboard.css') }}">
+    </head>    
+<body>
+
+    <h1>Chess with Stockfish</h1>
+    <div id="board" style="width: 400px"></div>
+    <button id="stockfishMove">Stockfish Move</button>
+
+    <script>
+        $(document).ready(function () {
+            console.log("jQuery Loaded:", typeof jQuery !== "undefined");
+            console.log("Chessboard.js Loaded:", typeof Chessboard !== "undefined");
+
+            if (typeof Chessboard === "undefined") {
+                console.error("Chessboard.js is not loaded. Check the script URL.");
+                return;
+            }
+
+            var board = Chessboard('board', {
+                draggable: true,
+                position: 'start',
+                pieceTheme: function(piece) {
+                    return "/static/chessboardjs/img/" + piece + ".png";
+                }
+            });
+
+            $("#stockfishMove").click(function () {
+                fetch('/stockfish-move')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Stockfish move response:", data);
+                        if (data.move) {
+                            board.move(data.move);
+                        } else {
+                            console.error("Invalid move received:", data);
+                        }
+                    })
+                    .catch(error => console.error("Error fetching Stockfish move:", error));
+            });
+        });
+    </script>
+
+</body>
+</html>
